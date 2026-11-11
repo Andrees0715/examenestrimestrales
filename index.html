@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unidad Educativa Eloy Alfaro - Horarios de Exámenes</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- html2pdf.js CDN for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#1d4ed8',
+              600: '#1e40af',
+              700: '#1d3557',
+              800: '#0f172a',
+              gold: '#d97706',
+              goldHover: '#b45309'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbar for modern feel */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printable-area, #printable-area * {
+        visibility: visible;
+      }
+      #printable-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-in-out pointer-events-none">
+    <div class="bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-slate-700">
+      <i id="toast-icon" class="fas fa-info-circle text-amber-400 text-lg"></i>
+      <span id="toast-message" class="text-sm font-medium">Notificación</span>
+    </div>
+  </div>
+
+  <!-- Header Banner -->
+  <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white border-b-4 border-amber-500 shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <!-- Institution Branding -->
+        <div class="flex items-center space-x-4">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200 border-2 border-white/20">
+            <!-- Shield SVG Emblem -->
+            <svg class="w-10 h-10 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-3zm0 2.18l7 2.33v4.49c0 4.54-3.14 8.78-7 9.87-3.86-1.09-7-5.33-7-9.87V6.51l7-2.33zM12 7a2 2 0 100 4 2 2 0 000-4zm-3 8c0-2 2-3.5 3-3.5s3 1.5 3 3.5H9z"/>
+            </svg>
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-full border border-amber-400/30 uppercase tracking-wider mb-1">
+              Año Lectivo 2026 - 2027
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+              UNIDAD EDUCATIVA "ELOY ALFARO"
+            </h1>
+            <p class="text-slate-300 text-xs sm:text-sm font-medium flex items-center gap-2 mt-0.5">
+              <i class="fas fa-calendar-check text-amber-400"></i> Horarios de Exámenes del Primer Trimestre
+            </p>
+          </div>
+        </div>
+
+        <!-- Quick Actions & Badge -->
+        <div class="flex flex-wrap items-center justify-center md:justify-end gap-3 w-full md:w-auto">
+          <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-center">
+            <span class="block text-xs text-slate-300 uppercase tracking-wider">Evaluaciones</span>
+            <span class="text-sm font-bold text-amber-300">1º Trimestre</span>
+          </div>
+          <button id="btn-quick-pdf" onclick="generatePDF()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold px-5 py-2.5 rounded-xl shadow-lg hover:shadow-amber-500/20 transition-all flex items-center gap-2 transform active:scale-95 text-sm">
+            <i class="fas fa-file-pdf text-lg"></i>
+            <span>Descargar PDF</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <!-- Controls & Selection Panel -->
+    <section class="bg-white rounded-2xl shadow-md border border-slate-200/80 p-5 sm:p-6 mb-8">
+      
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 pb-6 border-b border-slate-100">
+        
+        <!-- Course Dropdown Selector -->
+        <div class="w-full lg:w-1/2">
+          <label for="course-select" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i class="fas fa-graduation-cap text-blue-600"></i> Selecciona tu Curso / Año de Educación:
+          </label>
+          <div class="relative">
+            <select id="course-select" onchange="changeCourse(this.value)" class="w-full bg-slate-50 border-2 border-slate-300 text-slate-900 text-base font-bold rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3.5 pr-10 appearance-none cursor-pointer shadow-sm transition-all">
+              <!-- Dynamically populated options -->
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-600">
+              <i class="fas fa-chevron-down text-lg"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Input -->
+        <div class="w-full lg:w-1/2">
+          <label for="search-input" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i class="fas fa-search text-blue-600"></i> Buscar Asignatura o Docente:
+            </span>
+            <span class="text-[10px] text-blue-700 font-bold bg-blue-100/80 px-2 py-0.5 rounded border border-blue-300 flex items-center gap-1">
+              <i class="fas fa-globe text-blue-600"></i> Búsqueda en todos los cursos
+            </span>
+          </label>
+          <div class="relative">
+            <input type="text" id="search-input" onkeyup="filterSchedule()" placeholder="Ej: Lic. Digson Benalcázar, Mgtr. Danny Vinueza, Matemática..." class="w-full bg-slate-50 border-2 border-slate-300 text-slate-900 text-sm font-medium rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3.5 pl-11 shadow-sm transition-all">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i class="fas fa-search text-base"></i>
+            </div>
+            <button id="clear-search" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+              <i class="fas fa-times-circle text-base"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Category Pills -->
+      <div>
+        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Acceso Rápido por Secciones:</span>
+        <div class="flex flex-wrap gap-2" id="course-pills">
+          <!-- Dynamically populated course buttons -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Schedule Header Summary Card -->
+    <div id="course-header-card" class="bg-gradient-to-r from-blue-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border border-blue-800">
+      <div class="flex items-center space-x-4">
+        <div class="w-14 h-14 bg-blue-600/40 rounded-2xl flex items-center justify-center text-amber-400 border border-blue-400/30 shrink-0" id="header-icon-box">
+          <i class="fas fa-calendar-days text-2xl" id="header-icon"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-amber-400 font-bold text-xs uppercase tracking-widest block" id="section-badge">Educación General Básica</span>
+            <span id="global-search-badge" class="hidden bg-amber-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">
+              Búsqueda Global
+            </span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white" id="current-course-title">Cargando curso...</h2>
+          <p class="text-slate-300 text-xs sm:text-sm mt-1" id="course-meta-info">Total: -- exámenes programados</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-slate-700">
+        <button onclick="window.print()" class="flex-1 md:flex-initial bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl border border-slate-600 font-semibold text-sm transition flex items-center justify-center gap-2">
+          <i class="fas fa-print"></i>
+          <span>Imprimir</span>
+        </button>
+        <button onclick="generatePDF()" class="flex-1 md:flex-initial bg-amber-500 hover:bg-amber-600 text-slate-950 px-5 py-2.5 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+          <i class="fas fa-file-pdf"></i>
+          <span>Descargar Horario (PDF)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- View Modes & Filter Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <!-- Date Filter -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none" id="date-filters">
+        <!-- Dynamically rendered date filter buttons -->
+      </div>
+
+      <!-- View Switcher (Cards / Table) -->
+      <div class="flex items-center bg-slate-200 p-1 rounded-xl shrink-0 self-end sm:self-auto">
+        <button id="btn-view-cards" onclick="switchView('cards')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-1.5">
+          <i class="fas fa-th-large"></i> Tarjetas
+        </button>
+        <button id="btn-view-table" onclick="switchView('table')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+          <i class="fas fa-list"></i> Tabla
+        </button>
+      </div>
+    </div>
+
+    <!-- Schedule Render Container -->
+    <div id="schedule-container" class="space-y-8">
+      <!-- Cards View Content -->
+    </div>
+
+    <!-- Table View Container (Hidden by default) -->
+    <div id="schedule-table-container" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <!-- Table Content -->
+    </div>
+
+    <!-- Empty / No Results Message -->
+    <div id="no-results" class="hidden bg-white rounded-2xl border-2 border-dashed border-slate-300 p-12 text-center">
+      <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="fas fa-search"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800 mb-1">No se encontraron exámenes</h3>
+      <p class="text-slate-500 text-sm max-w-md mx-auto">No hay asignaturas que coincidan con los criterios de búsqueda o el filtro de fecha seleccionado.</p>
+      <button onclick="clearSearch()" class="mt-4 px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 transition">
+        Restablecer Filtros
+      </button>
+    </div>
+
+    <!-- Important Notice Section -->
+    <section class="mt-12 bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 shadow-sm">
+      <div class="flex items-start space-x-4">
+        <div class="w-10 h-10 bg-amber-500 text-slate-950 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 mt-0.5">
+          <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h4 class="text-base font-bold text-amber-950 uppercase tracking-wide">Instrucciones Importantes para los Estudiantes</h4>
+          <ul class="mt-2 space-y-1.5 text-xs sm:text-sm text-amber-900 font-medium list-disc list-inside">
+            <li>Asistir puntualmente con **10 minutos de anticipación** a la hora programada para el examen.</li>
+            <li>Portar el uniforme institucional correspondiente según la jornada.</li>
+            <li>Presentar los materiales necesarios (esferográficos, lápiz, borrador, calculadora si la materia lo autoriza).</li>
+            <li>En caso de inasistencia justificada, presentar el requerimiento en secretaría dentro del plazo reglamentario.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 mt-12 text-xs">
+    <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
+      <div class="flex items-center justify-center space-x-2 text-slate-300 font-bold text-sm">
+        <i class="fas fa-shield-halved text-amber-400"></i>
+        <span>Unidad Educativa Eloy Alfaro</span>
+      </div>
+      <p>© 2026 U.E. Eloy Alfaro - Sistema Digital de Publicación de Cronogramas Académicos</p>
+      <p class="text-slate-500">Evaluaciones Sumativas del Primer Trimestre • Desarrollado para la comunidad educativa</p>
+    </div>
+  </footer>
+
+
+  <!-- HIDDEN PRINTABLE / PDF DEDICATED TEMPLATE -->
+  <div class="hidden">
+    <div id="pdf-template" class="p-5 bg-white text-slate-900 font-sans leading-tight" style="width: 195mm; box-sizing: border-box;">
+      
+      <!-- Institutional PDF Header -->
+      <div class="border-b-2 border-slate-900 pb-2 mb-3 flex justify-between items-center">
+        <div>
+          <h1 class="text-lg font-black text-slate-900 uppercase tracking-tight">UNIDAD EDUCATIVA "ELOY ALFARO"</h1>
+          <p class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mt-0.5">Cronograma Oficial de Evaluaciones del Primer Trimestre</p>
+          <p class="text-[10px] text-slate-600">Año Lectivo 2026 - 2027</p>
+        </div>
+        <div class="text-right">
+          <span id="pdf-course-badge" class="inline-block bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase">
+            Curso
+          </span>
+          <p class="text-[9px] text-slate-500 mt-1" id="pdf-print-date">Generado: --</p>
+        </div>
+      </div>
+
+      <!-- Course Info Summary -->
+      <div class="bg-slate-100 px-3 py-1.5 rounded border border-slate-300 mb-3 flex justify-between items-center text-xs">
+        <div>
+          <span class="font-bold text-slate-700">CURSO / PARALELO:</span>
+          <span id="pdf-course-title" class="font-black text-slate-900 ml-1 text-xs">--</span>
+        </div>
+        <div>
+          <span class="font-bold text-slate-700">TOTAL EVALUACIONES:</span>
+          <span id="pdf-total-exams" class="font-bold text-slate-900 ml-1">--</span>
+        </div>
+      </div>
+
+      <!-- PDF Schedule Table -->
+      <div class="mb-3">
+        <table class="w-full text-left border-collapse border border-slate-400">
+          <thead>
+            <tr class="bg-slate-800 text-white uppercase text-[9px] tracking-wider">
+              <th class="border border-slate-400 px-2 py-1 text-center w-24">Fecha</th>
+              <th class="border border-slate-400 px-2 py-1 text-center w-20">Horario</th>
+              <th id="pdf-col-course" class="border border-slate-400 px-2 py-1 hidden">Curso / Nivel</th>
+              <th class="border border-slate-400 px-2 py-1">Asignatura</th>
+              <th class="border border-slate-400 px-2 py-1">Profesor / Docente</th>
+              <th class="border border-slate-400 px-2 py-1 text-center w-16">Tipo</th>
+            </tr>
+          </thead>
+          <tbody id="pdf-table-body">
+            <!-- Dynamically injected rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Official Signatures Footer -->
+      <div class="mt-4 pt-3 border-t border-slate-300 grid grid-cols-2 gap-8 text-center text-xs">
+        <div>
+          <div class="border-b border-slate-800 w-36 mx-auto mb-1"></div>
+          <p class="font-bold text-slate-800 text-[11px]">Vicerrectorado / Coordinación</p>
+          <p class="text-[9px] text-slate-500">U.E. Eloy Alfaro</p>
+        </div>
+        <div>
+          <div class="border-b border-slate-800 w-36 mx-auto mb-1"></div>
+          <p class="font-bold text-slate-800 text-[11px]">Tutor de Curso</p>
+          <p class="text-[9px] text-slate-500">U.E. Eloy Alfaro</p>
+        </div>
+      </div>
+
+      <!-- PDF Footer note -->
+      <div class="mt-3 text-center text-[8px] text-slate-400 italic">
+        Documento oficial generado desde el Portal Web de la Unidad Educativa Eloy Alfaro. Validez académica para el Primer Trimestre.
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- JAVASCRIPT DATA & APP LOGIC -->
+  <script>
+    // COMPLETE DATA EXTREMELY ACCURATELY EXTRACTED FROM PDF DOCUMENTS
+    const SCHEDULE_DATA = {
+      "octavo_a": {
+        title: "Octavo Año \"A\"",
+        section: "Educación General Básica Superior",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "13:00 - 14:00", subject: "Estudios Sociales", teacher: "Lic. José Cachimuel", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "15:00 - 16:00", subject: "Educación Física", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "13:00 - 14:00", subject: "Educación Cultural y Artística", teacher: "Mgtr. Cristina Recalde", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "15:00 - 16:00", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "13:00 - 14:00", subject: "Matemática", teacher: "Mgtr. Yadira Benavides", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "14:00 - 15:00", subject: "Ciencias Naturales", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "13:00 - 14:00", subject: "Lengua y Literatura", teacher: "Prof. Anavela Saá", type: "Examen" }
+        ]
+      },
+      "octavo_b": {
+        title: "Octavo Año \"B\"",
+        section: "Educación General Básica Superior",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "14:00 - 15:00", subject: "Educación Física", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "15:00 - 16:00", subject: "Estudios Sociales", teacher: "Lic. José Cachimuel", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "13:00 - 14:00", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "15:00 - 16:00", subject: "Educación Cultural y Artística", teacher: "Mgtr. Cristina Recalde", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "14:00 - 15:00", subject: "Matemática", teacher: "Mgtr. Yadira Benavides", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "13:00 - 14:00", subject: "Lengua y Literatura", teacher: "Mgtr. Xavier Muñoz", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "15:00 - 16:00", subject: "Ciencias Naturales", teacher: "Lic. Digson Benalcázar", type: "Examen" }
+        ]
+      },
+      "noveno_a": {
+        title: "Noveno Año \"A\"",
+        section: "Educación General Básica Superior",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "14:00 - 15:00", subject: "Lengua y Literatura", teacher: "Mgtr. Xavier Muñoz", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "15:00 - 16:00", subject: "Educación Física", teacher: "Mgtr. Alvaro Viteri", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "13:00 - 14:00", subject: "Ciencias Naturales", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "14:00 - 15:00", subject: "Educación Cultural y Artística", teacher: "Mgtr. Cristina Recalde", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "15:00 - 16:00", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "13:00 - 14:00", subject: "Matemática", teacher: "Lic. Anival Calderón", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "13:00 - 14:00", subject: "Estudios Sociales", teacher: "Lic. José Cachimuel", type: "Examen" }
+        ]
+      },
+      "noveno_b": {
+        title: "Noveno Año \"B\"",
+        section: "Educación General Básica Superior",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "14:00 - 15:00", subject: "Estudios Sociales", teacher: "Lic. José Cachimuel", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "14:00 - 15:00", subject: "Ciencias Naturales", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "13:00 - 14:00", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "15:00 - 16:00", subject: "Educación Cultural y Artística", teacher: "Mgtr. Cristina Recalde", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "14:00 - 15:00", subject: "Matemática", teacher: "Lic. Anival Calderón", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "13:00 - 14:00", subject: "Educación Física", teacher: "Mgtr. Álvaro Viteri", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "15:00 - 16:00", subject: "Lengua y Literatura", teacher: "Mgtr. Xavier Muñoz", type: "Examen" }
+        ]
+      },
+      "decimo": {
+        title: "Décimo Año",
+        section: "Educación General Básica Superior",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "13:00 - 14:00", subject: "Ciencias Naturales", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "13:00 - 14:00", subject: "Matemática", teacher: "Lic. Anival Calderón", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "13:00 - 14:00", subject: "Educación Cultural y Artística", teacher: "Mgtr. Cristina Recalde", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "15:00 - 16:00", subject: "Estudios Sociales", teacher: "Lic. José Cachimuel", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "15:00 - 16:00", subject: "Lengua y Literatura", teacher: "Mgtr. Xavier Muñoz", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "13:00 - 14:00", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "15:00 - 16:00", subject: "Educación Física", teacher: "Mgtr. Alvaro Viteri", type: "Examen" }
+        ]
+      },
+      "bt1_soporte": {
+        title: "1º Año BT Soporte Informático",
+        section: "Bachillerato Técnico Informático",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "12:00 - 12:45", subject: "Educación para la Ciudadanía", teacher: "Lic. Bertha Zurita", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "13:45 - 14:30", subject: "Física", teacher: "Mgtr. Jacobo Suárez", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "15:15 - 16:00", subject: "Fundamentos de las TIC's", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "12:00 - 12:45", subject: "Educación Física", teacher: "Mgtr. Jeferson Grijalva", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "13:45 - 14:30", subject: "Historia", teacher: "Lic. José Cachimuel", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "15:15 - 16:00", subject: "Química", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "12:00 - 12:45", subject: "Ética, Legislación y Ciudadanía Digital", teacher: "Lic. Bertha Zurita", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "13:45 - 14:30", subject: "Lengua y Literatura", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "15:15 - 16:00", subject: "Sistemas Operativos y Aplicaciones", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "12:00 - 12:45", subject: "Fundamentos de Electricidad y Electrónica", teacher: "Tlgo. Andrees Peñafiel", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "13:45 - 14:30", subject: "Emprendimiento y Gestión", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "15:15 - 16:00", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "12:00 - 12:45", subject: "Filosofía", teacher: "Dr. Galo Álvarez", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "13:45 - 14:30", subject: "Matemática", teacher: "Lic. Anival Calderón", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "15:15 - 16:00", subject: "Soporte Técnico Informático", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "13:00 - 13:45", subject: "Pensamiento Computacional", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "13:45 - 14:30", subject: "Educación Cultural y Artística", teacher: "Mgtr. Cristina Recalde", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "15:15 - 16:00", subject: "Biología", teacher: "Lic. Digson Benalcázar", type: "Examen" }
+        ]
+      },
+      "bt2_soporte": {
+        title: "2º Año BT Soporte Informático",
+        section: "Bachillerato Técnico Informático",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "12:00 - 12:45", subject: "Fundamentos de Electricidad y Electrónica", teacher: "Tlgo. Andrees Peñafiel", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "13:45 - 14:30", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "15:15 - 16:00", subject: "Pensamiento Computacional", teacher: "Mgtr. Jacobo Suárez", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "12:00 - 12:45", subject: "Historia", teacher: "Lic. José Cachimuel", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "13:45 - 14:30", subject: "Redes y Conectividad", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "15:15 - 16:00", subject: "Física", teacher: "Mgtr. Jacobo Suárez", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "12:00 - 12:45", subject: "Soporte Técnico Informático", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "13:45 - 14:30", subject: "Química", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "15:15 - 16:00", subject: "Emprendimiento y Gestión", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "12:00 - 12:45", subject: "Educación para la Ciudadanía", teacher: "Lic. Bertha Zurita", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "13:45 - 14:30", subject: "Mantenimiento Preventivo y Correctivo", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "15:15 - 16:00", subject: "Biología", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "12:00 - 12:45", subject: "Educación Física", teacher: "Mgtr. Alvaro Viteri", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "13:00 - 13:45", subject: "Educación Cultural y Artística", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "13:45 - 14:30", subject: "Sistemas Operativos y Aplicaciones", teacher: "Mgtr. Jacobo Suárez", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "15:15 - 16:00", subject: "Lengua y Literatura", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "13:00 - 13:45", subject: "Matemática", teacher: "Lic. Anival Calderón", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "13:45 - 14:30", subject: "Filosofía", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "15:15 - 16:00", subject: "Fundamentos de las TIC's", teacher: "Mgtr. Mayra Almeida", type: "Examen" }
+        ]
+      },
+      "bt3_informatica": {
+        title: "3º Año BT Informática",
+        section: "Bachillerato Técnico Informático",
+        exams: [
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "12:00 - 12:45", subject: "Educación Física", teacher: "Mgtr. Jeferson Grijalva", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "13:00 - 13:45", subject: "Formación y Orientación Laboral", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-12", day: "Jue, 12 nov", time: "14:30 - 15:15", subject: "Programación y Base de Datos", teacher: "Mgtr. Jacobo Suárez", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "12:00 - 12:45", subject: "Soporte Técnico", teacher: "Tlgo. Andrees Peñafiel", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "13:45 - 14:30", subject: "Emprendimiento y Gestión", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-13", day: "Vie, 13 nov", time: "15:15 - 16:00", subject: "Aplicaciones Ofimáticas", teacher: "Mgtr. Danny Vinueza", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "13:00 - 13:45", subject: "Historia", teacher: "Lic. José Cachimuel", type: "Examen" },
+          { dateKey: "2026-11-16", day: "Lun, 16 nov", time: "15:15 - 16:00", subject: "Matemática", teacher: "Lic. Anival Calderón", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "13:00 - 13:45", subject: "Biología", teacher: "Lic. Digson Benalcázar", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "13:45 - 14:30", subject: "Sistemas Operativos y Redes", teacher: "Mgtr. Jacobo Suárez", type: "Examen" },
+          { dateKey: "2026-11-17", day: "Mar, 17 nov", time: "15:15 - 16:00", subject: "Lengua y Literatura", teacher: "Mgtr. Mayra Almeida", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "12:00 - 12:45", subject: "Diseño y Desarrollo Web", teacher: "Tlgo. Andrees Peñafiel", type: "Examen" },
+          { dateKey: "2026-11-18", day: "Mié, 18 nov", time: "15:15 - 16:00", subject: "Física", teacher: "Mgtr. Jacobo Suárez", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "13:45 - 14:30", subject: "Inglés", teacher: "Lic. Evelyn Armas", type: "Examen" },
+          { dateKey: "2026-11-23", day: "Lun, 23 nov", time: "14:30 - 15:15", subject: "Química", teacher: "Lic. Digson Benalcázar", type: "Examen" }
+        ]
+      }
+    };
+
+    // State Variables
+    let currentCourseKey = "octavo_a";
+    let selectedDateFilter = "ALL";
+    let currentViewMode = "cards"; // 'cards' or 'table'
+
+    // Map for formatted day titles
+    const DAY_NAMES = {
+      "Jue, 12 nov": "Jueves, 12 de Noviembre",
+      "Vie, 13 nov": "Viernes, 13 de Noviembre",
+      "Lun, 16 nov": "Lunes, 16 de Noviembre",
+      "Mar, 17 nov": "Martes, 17 de Noviembre",
+      "Mié, 18 nov": "Miércoles, 18 de Noviembre",
+      "Lun, 23 nov": "Lunes, 23 de Noviembre"
+    };
+
+    // Subject Icon Mapper
+    function getSubjectIcon(subject) {
+      const s = subject.toLowerCase();
+      if (s.includes('matemátic')) return 'fa-calculator text-blue-600';
+      if (s.includes('física') || s.includes('química') || s.includes('ciencias')) return 'fa-flask text-emerald-600';
+      if (s.includes('inglés')) return 'fa-language text-purple-600';
+      if (s.includes('lengua') || s.includes('literatura')) return 'fa-book-open text-amber-600';
+      if (s.includes('sociales') || s.includes('historia') || s.includes('filosofía') || s.includes('ciudadanía')) return 'fa-landmark text-red-600';
+      if (s.includes('física') && s.includes('educación')) return 'fa-volleyball text-orange-600';
+      if (s.includes('artística') || s.includes('cultural')) return 'fa-palette text-pink-600';
+      if (s.includes('informátic') || s.includes('redes') || s.includes('sistemas') || s.includes('soporte') || s.includes('web') || s.includes('tic') || s.includes('programación') || s.includes('computacional')) return 'fa-laptop-code text-cyan-600';
+      return 'fa-pen-to-square text-indigo-600';
+    }
+
+    // Initialize Page
+    document.addEventListener("DOMContentLoaded", () => {
+      populateCourseSelect();
+      populateCoursePills();
+      loadCourseData(currentCourseKey);
+    });
+
+    // Populate Dropdown
+    function populateCourseSelect() {
+      const select = document.getElementById('course-select');
+      select.innerHTML = '';
+      
+      let egbGroup = document.createElement('optgroup');
+      egbGroup.label = 'Educación General Básica (EGB)';
+      
+      let btGroup = document.createElement('optgroup');
+      btGroup.label = 'Bachillerato Técnico (BT Informática)';
+
+      Object.keys(SCHEDULE_DATA).forEach(key => {
+        const course = SCHEDULE_DATA[key];
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = `${course.title} (${course.section})`;
+        
+        if (key.startsWith('bt')) {
+          btGroup.appendChild(opt);
+        } else {
+          egbGroup.appendChild(opt);
+        }
+      });
+
+      select.appendChild(egbGroup);
+      select.appendChild(btGroup);
+    }
+
+    // Populate Quick Access Pills
+    function populateCoursePills() {
+      const pillsContainer = document.getElementById('course-pills');
+      pillsContainer.innerHTML = '';
+
+      Object.keys(SCHEDULE_DATA).forEach(key => {
+        const course = SCHEDULE_DATA[key];
+        const btn = document.createElement('button');
+        btn.id = `pill-${key}`;
+        btn.onclick = () => changeCourse(key);
+        btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+          key === currentCourseKey
+            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+            : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+        }`;
+        btn.innerHTML = `<i class="${key.startsWith('bt') ? 'fas fa-laptop' : 'fas fa-graduation-cap'} mr-1"></i> ${course.title}`;
+        pillsContainer.appendChild(btn);
+      });
+    }
+
+    // Switch Course
+    function changeCourse(courseKey) {
+      if (!SCHEDULE_DATA[courseKey]) return;
+      currentCourseKey = courseKey;
+      selectedDateFilter = "ALL";
+      
+      // Sync select
+      document.getElementById('course-select').value = courseKey;
+      
+      // Sync pills
+      Object.keys(SCHEDULE_DATA).forEach(key => {
+        const pill = document.getElementById(`pill-${key}`);
+        if (pill) {
+          if (key === courseKey) {
+            pill.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-blue-600 text-white border-blue-600 shadow-sm';
+          } else {
+            pill.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200';
+          }
+        }
+      });
+
+      // Clear search
+      document.getElementById('search-input').value = '';
+      document.getElementById('clear-search').classList.add('hidden');
+
+      loadCourseData(courseKey);
+      showToast(`Cargado: ${SCHEDULE_DATA[courseKey].title}`, 'fa-check-circle text-emerald-400');
+    }
+
+    // Load Course Content
+    function loadCourseData(courseKey) {
+      const course = SCHEDULE_DATA[courseKey];
+
+      // Update Header Card
+      document.getElementById('current-course-title').textContent = course.title;
+      document.getElementById('section-badge').textContent = course.section;
+      document.getElementById('course-meta-info').textContent = `Total: ${course.exams.length} asignaturas a evaluar en el trimestre`;
+
+      // Render Date Filter Buttons
+      renderDateFilters(course.exams);
+
+      // Render Schedule Display
+      renderSchedule();
+    }
+
+    // Render Date Filter Bar
+    function renderDateFilters(exams) {
+      const container = document.getElementById('date-filters');
+      container.innerHTML = '';
+
+      // Get unique days
+      const days = ['ALL', ...new Set(exams.map(e => e.day))];
+
+      days.forEach(day => {
+        const btn = document.createElement('button');
+        btn.onclick = () => filterByDate(day);
+        const isActive = day === selectedDateFilter;
+        btn.className = `px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+          isActive 
+            ? 'bg-slate-900 text-amber-400 border-slate-900 shadow-sm' 
+            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+        }`;
+        
+        btn.textContent = day === 'ALL' ? 'Todos los días' : day;
+        container.appendChild(btn);
+      });
+    }
+
+    // Filter by Date
+    function filterByDate(day) {
+      selectedDateFilter = day;
+      renderDateFilters(SCHEDULE_DATA[currentCourseKey].exams);
+      renderSchedule();
+    }
+
+    // Filter by Search Query (Global Across All Courses)
+    function filterSchedule() {
+      const query = document.getElementById('search-input').value.trim();
+      const clearBtn = document.getElementById('clear-search');
+      
+      if (query.length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
+      renderSchedule();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('clear-search').classList.add('hidden');
+      renderSchedule();
+    }
+
+    // Current active dataset being rendered (used for PDF export)
+    let currentRenderedExams = [];
+    let isGlobalSearchActive = false;
+
+    // Render Schedule (Cards and Table)
+    function renderSchedule() {
+      const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+      const globalBadge = document.getElementById('global-search-badge');
+      const headerIcon = document.getElementById('header-icon');
+
+      let examsToDisplay = [];
+      isGlobalSearchActive = searchQuery.length > 0;
+
+      if (isGlobalSearchActive) {
+        // Search across ALL courses in SCHEDULE_DATA
+        Object.keys(SCHEDULE_DATA).forEach(key => {
+          const course = SCHEDULE_DATA[key];
+          course.exams.forEach(exam => {
+            const matchesQuery = 
+              exam.subject.toLowerCase().includes(searchQuery) || 
+              exam.teacher.toLowerCase().includes(searchQuery) ||
+              exam.day.toLowerCase().includes(searchQuery) ||
+              course.title.toLowerCase().includes(searchQuery);
+            
+            const matchesDate = selectedDateFilter === 'ALL' || exam.day === selectedDateFilter;
+
+            if (matchesQuery && matchesDate) {
+              examsToDisplay.push({
+                ...exam,
+                courseKey: key,
+                courseTitle: course.title,
+                courseSection: course.section
+              });
+            }
+          });
+        });
+
+        // Update Summary Header for Global Search
+        globalBadge.classList.remove('hidden');
+        headerIcon.className = 'fas fa-search text-2xl';
+        document.getElementById('section-badge').textContent = 'Resumen General Institucional';
+        document.getElementById('current-course-title').innerHTML = `Búsqueda: <span class="text-amber-400">"${document.getElementById('search-input').value}"</span>`;
+        document.getElementById('course-meta-info').textContent = `Se encontraron ${examsToDisplay.length} exámenes registrados para este docente/materia en todos los cursos`;
+      } else {
+        // Single Course Mode
+        globalBadge.classList.add('hidden');
+        headerIcon.className = 'fas fa-calendar-days text-2xl';
+        const course = SCHEDULE_DATA[currentCourseKey];
+        document.getElementById('current-course-title').textContent = course.title;
+        document.getElementById('section-badge').textContent = course.section;
+        document.getElementById('course-meta-info').textContent = `Total: ${course.exams.length} asignaturas a evaluar en el trimestre`;
+
+        examsToDisplay = course.exams.filter(exam => {
+          return selectedDateFilter === 'ALL' || exam.day === selectedDateFilter;
+        }).map(exam => ({
+          ...exam,
+          courseKey: currentCourseKey,
+          courseTitle: course.title,
+          courseSection: course.section
+        }));
+      }
+
+      currentRenderedExams = examsToDisplay;
+
+      const cardsContainer = document.getElementById('schedule-container');
+      const tableContainer = document.getElementById('schedule-table-container');
+      const noResults = document.getElementById('no-results');
+
+      if (examsToDisplay.length === 0) {
+        cardsContainer.innerHTML = '';
+        tableContainer.innerHTML = '';
+        noResults.classList.remove('hidden');
+        return;
+      }
+
+      noResults.classList.add('hidden');
+
+      // Group exams by Day for Cards View
+      const grouped = {};
+      examsToDisplay.forEach(exam => {
+        if (!grouped[exam.day]) grouped[exam.day] = [];
+        grouped[exam.day].push(exam);
+      });
+
+      // RENDER CARDS VIEW
+      let cardsHtml = '';
+      Object.keys(grouped).forEach(day => {
+        const fullDayName = DAY_NAMES[day] || day;
+        cardsHtml += `
+          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            <!-- Day Banner Header -->
+            <div class="bg-gradient-to-r from-slate-100 to-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                  <i class="fas fa-calendar-day"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-base sm:text-lg">${fullDayName}</h3>
+              </div>
+              <span class="text-xs font-semibold px-2.5 py-1 bg-slate-200 text-slate-700 rounded-full">
+                ${grouped[day].length} ${grouped[day].length === 1 ? 'evaluación' : 'evaluaciones'}
+              </span>
+            </div>
+
+            <!-- Exam Cards Grid -->
+            <div class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${grouped[day].map(exam => `
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 hover:border-blue-400 transition-all flex flex-col justify-between relative group">
+                  <div>
+                    <!-- Course Tag & Time Badge -->
+                    <div class="flex flex-wrap items-center justify-between gap-1.5 mb-3">
+                      <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 bg-blue-100 text-blue-800 rounded-lg">
+                        <i class="far fa-clock text-blue-600"></i> ${exam.time}
+                      </span>
+                      <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700">
+                        <i class="fas fa-graduation-cap mr-1"></i>${exam.courseTitle}
+                      </span>
+                    </div>
+
+                    <!-- Subject Title -->
+                    <div class="flex items-start space-x-3 my-2">
+                      <div class="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-xs">
+                        <i class="fas ${getSubjectIcon(exam.subject)} text-base"></i>
+                      </div>
+                      <div>
+                        <h4 class="font-extrabold text-slate-900 text-base leading-snug group-hover:text-blue-700 transition-colors">
+                          ${exam.subject}
+                        </h4>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Teacher Info -->
+                  <div class="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600">
+                    <span class="flex items-center gap-1.5 font-medium truncate">
+                      <i class="fas fa-user-tie text-slate-400"></i> ${exam.teacher}
+                    </span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
+                      ${exam.type}
+                    </span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+      cardsContainer.innerHTML = cardsHtml;
+
+      // RENDER TABLE VIEW
+      let tableHtml = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-900 text-white text-xs font-bold uppercase tracking-wider">
+                <th class="p-4 border-b border-slate-800">Curso</th>
+                <th class="p-4 border-b border-slate-800">Día</th>
+                <th class="p-4 border-b border-slate-800">Horario</th>
+                <th class="p-4 border-b border-slate-800">Asignatura</th>
+                <th class="p-4 border-b border-slate-800">Docente / Profesor</th>
+                <th class="p-4 border-b border-slate-800 text-center">Tipo</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 text-sm">
+              ${examsToDisplay.map((exam, idx) => `
+                <tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-blue-50/50 transition">
+                  <td class="p-4 font-black text-slate-800 whitespace-nowrap">
+                    <span class="bg-slate-100 text-slate-900 px-2.5 py-1 rounded-md text-xs border border-slate-300">
+                      ${exam.courseTitle}
+                    </span>
+                  </td>
+                  <td class="p-4 font-bold text-slate-900 whitespace-nowrap">
+                    <i class="far fa-calendar text-blue-600 mr-1.5"></i> ${exam.day}
+                  </td>
+                  <td class="p-4 font-semibold text-blue-700 whitespace-nowrap">
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs">
+                      ${exam.time}
+                    </span>
+                  </td>
+                  <td class="p-4 font-extrabold text-slate-900">
+                    <i class="fas ${getSubjectIcon(exam.subject)} mr-2 opacity-80"></i> ${exam.subject}
+                  </td>
+                  <td class="p-4 text-slate-700 font-medium">
+                    ${exam.teacher}
+                  </td>
+                  <td class="p-4 text-center">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-md border border-amber-300">
+                      ${exam.type}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+      tableContainer.innerHTML = tableHtml;
+    }
+
+    // Switch Cards / Table View
+    function switchView(mode) {
+      currentViewMode = mode;
+      const cardsBtn = document.getElementById('btn-view-cards');
+      const tableBtn = document.getElementById('btn-view-table');
+      const cardsContainer = document.getElementById('schedule-container');
+      const tableContainer = document.getElementById('schedule-table-container');
+
+      if (mode === 'cards') {
+        cardsBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-1.5";
+        tableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+        cardsContainer.classList.remove('hidden');
+        tableContainer.classList.add('hidden');
+      } else {
+        tableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-1.5";
+        cardsBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5";
+        cardsContainer.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+      }
+    }
+
+    // GENERATE PDF FUNCTIONALITY (Course or Global Search)
+    function generatePDF() {
+      const examsToPrint = currentRenderedExams.length > 0 ? currentRenderedExams : SCHEDULE_DATA[currentCourseKey].exams;
+      const searchQuery = document.getElementById('search-input').value.trim();
+      const isSearchMode = isGlobalSearchActive && searchQuery.length > 0;
+      const isCompact = examsToPrint.length > 10;
+      
+      const courseBadge = document.getElementById('pdf-course-badge');
+      const courseTitle = document.getElementById('pdf-course-title');
+      const pdfTotalExams = document.getElementById('pdf-total-exams');
+      const pdfColCourse = document.getElementById('pdf-col-course');
+
+      if (isSearchMode) {
+        courseBadge.textContent = "BÚSQUEDA GLOBAL";
+        courseTitle.textContent = `Reporte: "${searchQuery}"`;
+        pdfTotalExams.textContent = `${examsToPrint.length} evaluaciones encontradas`;
+        pdfColCourse.classList.remove('hidden');
+      } else {
+        const course = SCHEDULE_DATA[currentCourseKey];
+        courseBadge.textContent = course.section;
+        courseTitle.textContent = course.title;
+        pdfTotalExams.textContent = `${examsToPrint.length} asignaturas`;
+        pdfColCourse.classList.add('hidden');
+      }
+
+      document.getElementById('pdf-print-date').textContent = `Impreso: ${new Date().toLocaleDateString('es-ES')}`;
+
+      // Dynamic cell padding & text size to ensure single page fitting
+      const cellPadding = isCompact ? 'px-1.5 py-0.5 text-[8.5px]' : 'px-2 py-1 text-[9.5px]';
+
+      // Populate PDF Table Rows
+      const pdfTbody = document.getElementById('pdf-table-body');
+      pdfTbody.innerHTML = examsToPrint.map(exam => `
+        <tr>
+          <td class="border border-slate-400 ${cellPadding} font-bold text-center whitespace-nowrap">${exam.day}</td>
+          <td class="border border-slate-400 ${cellPadding} text-center font-semibold text-blue-950 whitespace-nowrap">${exam.time}</td>
+          ${isSearchMode ? `<td class="border border-slate-400 ${cellPadding} font-black text-slate-800">${exam.courseTitle}</td>` : ''}
+          <td class="border border-slate-400 ${cellPadding} font-bold">${exam.subject}</td>
+          <td class="border border-slate-400 ${cellPadding}">${exam.teacher}</td>
+          <td class="border border-slate-400 ${cellPadding} text-center font-bold text-slate-700">${exam.type}</td>
+        </tr>
+      `).join('');
+
+      showToast('Generando archivo PDF en una sola página...', 'fa-spinner fa-spin text-amber-400');
+
+      const element = document.getElementById('pdf-template');
+      const cleanTitle = isSearchMode ? `Busqueda_${searchQuery.replace(/[^a-zA-Z0-9]/g, '_')}` : SCHEDULE_DATA[currentCourseKey].title.replace(/[^a-zA-Z0-9]/g, '_');
+
+      const opt = {
+        margin:       [4, 4, 4, 4],
+        filename:     `Horario_${cleanTitle}_UE_Eloy_Alfaro.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: 'avoid-all' }
+      };
+
+      // Execute html2pdf
+      html2pdf().set(opt).from(element).save().then(() => {
+        showToast('PDF descargado exitosamente (1 página)', 'fa-check-circle text-emerald-400');
+      }).catch(err => {
+        console.error('Error al generar PDF:', err);
+        showToast('Iniciando impresión alternativa...', 'fa-print text-blue-400');
+        window.print();
+      });
+    }
+
+    // Toast Alert Helper
+    function showToast(message, iconClass = 'fa-info-circle') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.textContent = message;
+      toastIcon.className = `fas ${iconClass} text-lg`;
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
